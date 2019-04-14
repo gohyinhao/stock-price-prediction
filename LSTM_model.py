@@ -27,13 +27,19 @@ X_validation = data_processor.X_validation.reshape(
     len(data_processor.X_validation), SEQ_LENGTH, 1) / NORMALIZATION_CONSTANT
 Y_validation = data_processor.Y_validation / NORMALIZATION_CONSTANT
 
+
 # RNN with 2 hidden layers
 # consider changing number of hidden layers as well as number of nodes
+NUM_OF_NODES = 20
+NUM_OF_OUTPUT = 1
+
 model = tf.keras.Sequential()
-model.add(tf.keras.layers.LSTM(20, input_shape=(
+model.add(tf.keras.layers.LSTM(NUM_OF_NODES, input_shape=(
     SEQ_LENGTH, 1), return_sequences=True))
-model.add(tf.keras.layers.LSTM(20))
-model.add(tf.keras.layers.Dense(1, activation=tf.nn.relu))
+model.add(tf.keras.layers.LSTM(NUM_OF_NODES))
+# uses Rectified Linear Unit (ReLU) activation function
+model.add(tf.keras.layers.Dense(NUM_OF_OUTPUT, activation=tf.nn.relu))
+
 
 # adam optimizer used in lieu of traditional stochastic gradient descent.
 # consider possibility of looking at other optimizers
