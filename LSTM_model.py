@@ -40,8 +40,7 @@ model.add(tf.keras.layers.Dense(1, activation=tf.nn.relu))
 model.compile(optimizer="adam", loss="mean_squared_error")
 
 # fit model with our training data
-# vary epochs to optimize?
-model.fit(X_training, Y_training, epochs=50)
+model.fit(X_training, Y_training, epochs=100)
 
 # test model against validation data set
 print(model.evaluate(X_validation, Y_validation))
