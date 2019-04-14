@@ -3,6 +3,9 @@ import fix_yahoo_finance as fix
 import time
 fix.pdr_override()
 
+# Methods to pull data from Yahoo Finance using pandas data reader
+# Does not work anymore because pandas data reader no longer supports yahoo finance/google finance
+
 
 def get_stock_data(ticker, start_date, end_date):
     """
