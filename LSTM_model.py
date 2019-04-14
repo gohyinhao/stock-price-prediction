@@ -1,45 +1,53 @@
 import pandas as pd
 import numpy as np
-import get_prices as hist
 import tensorflow as tf
 from preprocessing import DataProcessing
-import pandas_datareader.data as pdr
-import fix_yahoo_finance as fix
-fix.pdr_override()
 
-start = "2003-01-01"
-end = "2018-01-01"
+# optimizable variables
+PERCENTAGE_OF_DATA_FOR_TRAINING = 0.8
+SEQ_LENGTH = 10
 
-hist.get_stock_data("AAPL", start_date=start, end_date=end)
-process = DataProcessing("stock_prices.csv", 0.9)
-process.gen_test(10)
-process.gen_train(10)
+data_processor = DataProcessing(
+    "data\VTI.csv", PERCENTAGE_OF_DATA_FOR_TRAINING)
+data_processor.generate_validation_set(SEQ_LENGTH)
+data_processor.generate_training_set(SEQ_LENGTH)
 
-X_train = process.X_train.reshape((3379, 10, 1)) / 200
-Y_train = process.Y_train / 200
+# typically normalize by substracting average and dividing by standard deviation
+# but we want to use the output and check against live trade data thus not entirely feasible
+# hence simply divide by a constant to ensure weights in network do not become too large
+NORMALIZATION_CONSTANT = 200
 
-X_test = process.X_test.reshape(359, 10, 1) / 200
-Y_test = process.Y_test / 200
+# "normalization" of training data
+X_training = data_processor.X_training.reshape(
+    len(data_processor.X_training), SEQ_LENGTH, 1) / NORMALIZATION_CONSTANT
+Y_training = data_processor.Y_training / NORMALIZATION_CONSTANT
 
+# "normalization" of validation data
+X_validation = data_processor.X_validation.reshape(
+    len(data_processor.X_validation), SEQ_LENGTH, 1) / NORMALIZATION_CONSTANT
+Y_validation = data_processor.Y_validation / NORMALIZATION_CONSTANT
+
+# RNN with 2 hidden layers
+# consider changing number of hidden layers as well as number of nodes
 model = tf.keras.Sequential()
-model.add(tf.keras.layers.LSTM(20, input_shape=(10, 1), return_sequences=True))
+model.add(tf.keras.layers.LSTM(20, input_shape=(
+    SEQ_LENGTH, 1), return_sequences=True))
 model.add(tf.keras.layers.LSTM(20))
 model.add(tf.keras.layers.Dense(1, activation=tf.nn.relu))
 
+# adam optimizer used in lieu of traditional stochastic gradient descent.
+# consider possibility of looking at other optimizers
 model.compile(optimizer="adam", loss="mean_squared_error")
 
-model.fit(X_train, Y_train, epochs=50)
+# fit model with our training data
+# vary epochs to optimize?
+model.fit(X_training, Y_training, epochs=50)
 
-print(model.evaluate(X_test, Y_test))
-
-data = pdr.get_data_yahoo("AAPL", "2017-12-19", "2018-01-03")
-stock = data["Adj Close"]
-X_predict = np.array(stock).reshape((1, 10, 1)) / 200
-
-print(model.predict(X_predict)*200)
+# test model against validation data set
+print(model.evaluate(X_validation, Y_validation))
 
 # If instead of a full backtest, you just want to see how accurate the model is for a particular prediction, run this:
 # data = pdr.get_data_yahoo("AAPL", "2017-12-19", "2018-01-03")
 # stock = data["Adj Close"]
-# X_predict = np.array(stock).reshape((1, 10)) / 200
-# print(model.predict(X_predict)*200)
+# X_predict = np.array(stock).reshape((1, 10)) / NORMALIZATION_CONSTANT
+# print(model.predict(X_predict) * NORMALIZATION_CONSTANT)
