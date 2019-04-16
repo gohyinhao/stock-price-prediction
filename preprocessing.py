@@ -6,9 +6,10 @@ import numpy as np
 
 
 class DataProcessing:
-    def __init__(self, data, percentage_as_training):
+    def __init__(self, data, percentage_as_training, n_day_forecast):
         self.data = data
         self.percentage_as_training = percentage_as_training
+        self.n_day_forecast = n_day_forecast
         self.index = int(self.percentage_as_training * len(self.data))
         self.training_set = self.data[0: self.index]
         self.validation_set = self.data[self.index:]
@@ -28,10 +29,10 @@ class DataProcessing:
         # represents zero-based column number in CSV file
         COLUMN_NUMBER = 0
 
-        for i in range((len(self.training_set)//seq_len)*seq_len - seq_len - 1):
+        for i in range((len(self.training_set)//seq_len)*seq_len - seq_len - self.n_day_forecast):
             x = np.array(self.training_set.iloc[i: i + seq_len, COLUMN_NUMBER])
             y = np.array(
-                [self.training_set.iloc[i + seq_len + 1, COLUMN_NUMBER]], np.float64)
+                [self.training_set.iloc[i + seq_len + self.n_day_forecast, COLUMN_NUMBER]], np.float64)
             self.training_input.append(x)
             self.training_output.append(y)
         self.X_training = np.array(self.training_input)
@@ -48,11 +49,11 @@ class DataProcessing:
         # represents zero-based column number in CSV file
         COLUMN_NUMBER = 0
 
-        for i in range((len(self.validation_set)//seq_len)*seq_len - seq_len - 1):
+        for i in range((len(self.validation_set)//seq_len)*seq_len - seq_len - self.n_day_forecast):
             x = np.array(
                 self.validation_set.iloc[i: i + seq_len, COLUMN_NUMBER])
             y = np.array(
-                [self.validation_set.iloc[i + seq_len + 1, COLUMN_NUMBER]], np.float64)
+                [self.validation_set.iloc[i + seq_len + self.n_day_forecast, COLUMN_NUMBER]], np.float64)
             self.validation_input.append(x)
             self.validation_output.append(y)
         self.X_validation = np.array(self.validation_input)
