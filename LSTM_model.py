@@ -2,14 +2,20 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import quandl as quandl
+import keras
 from preprocessing import DataProcessing
+
+# live data extraction
+TICKER = "WGC/GOLD_DAILY_USD"
+data = quandl.get("WGC/GOLD_DAILY_USD", authtoken="FUw5PPY7UX5AW-svaskC")
+data = data[37:]  # before index 37, prices were not daily
 
 # optimizable variables
 PERCENTAGE_OF_DATA_FOR_TRAINING = 0.8
 SEQ_LENGTH = 10
 
-data_processor = DataProcessing(
-    "data\VTI.csv", PERCENTAGE_OF_DATA_FOR_TRAINING)
+data_processor = DataProcessing(data, PERCENTAGE_OF_DATA_FOR_TRAINING)
 data_processor.generate_validation_set(SEQ_LENGTH)
 data_processor.generate_training_set(SEQ_LENGTH)
 
@@ -47,7 +53,8 @@ model.add(tf.keras.layers.Dense(NUM_OF_OUTPUT, activation=tf.nn.leaky_relu))
 model.compile(optimizer="adam", loss="mean_squared_error")
 
 # fit model with our training data
-model.fit(X_training, Y_training, epochs=200)
+es = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=10)
+model.fit(X_training, Y_training, epochs=200, callbacks=[es])
 
 # test model against validation data set
 print(model.evaluate(X_validation, Y_validation))
@@ -58,11 +65,11 @@ Y_actual = Y_validation * NORMALIZATION_CONSTANT
 Y_prediction = model.predict(X_validation) * NORMALIZATION_CONSTANT
 
 # plot prediction vs. actual
-plt.plot(Y_prediction, color = 'red', label = 'Predicted VTI Stock Price')
-plt.plot(Y_actual, color = 'blue', label = 'Actual VTI Stock Price')
-plt.title('VTI Stock Price Prediction')
+plt.plot(Y_prediction, color='red', label='Predicted VTI Stock Price')
+plt.plot(Y_actual, color='blue', label='Actual VTI Stock Price')
+plt.title('Gold')
 plt.xlabel('Time')
-plt.ylabel('VTI Stock Price')
+plt.ylabel('Price')
 plt.legend()
 plt.show()
 tf.keras.backend.clear_session()

@@ -6,12 +6,12 @@ import numpy as np
 
 
 class DataProcessing:
-    def __init__(self, file, percentage_as_training):
-        self.file = pd.read_csv(file)
+    def __init__(self, data, percentage_as_training):
+        self.data = data
         self.percentage_as_training = percentage_as_training
-        self.index = int(self.percentage_as_training * len(self.file))
-        self.training_set = self.file[0: self.index]
-        self.validation_set = self.file[self.index:]
+        self.index = int(self.percentage_as_training * len(self.data))
+        self.training_set = self.data[0: self.index]
+        self.validation_set = self.data[self.index:]
         self.training_input = []
         self.training_output = []
         self.validation_input = []
@@ -26,7 +26,7 @@ class DataProcessing:
         """
 
         # represents zero-based column number in CSV file
-        COLUMN_NUMBER = 1
+        COLUMN_NUMBER = 0
 
         for i in range((len(self.training_set)//seq_len)*seq_len - seq_len - 1):
             x = np.array(self.training_set.iloc[i: i + seq_len, COLUMN_NUMBER])
@@ -46,7 +46,7 @@ class DataProcessing:
         """
 
         # represents zero-based column number in CSV file
-        COLUMN_NUMBER = 1
+        COLUMN_NUMBER = 0
 
         for i in range((len(self.validation_set)//seq_len)*seq_len - seq_len - 1):
             x = np.array(
