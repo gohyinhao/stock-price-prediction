@@ -24,7 +24,7 @@ data_processor.generate_training_set(SEQ_LENGTH)
 # typically normalize by substracting average and dividing by standard deviation
 # but we want to use the output and check against live trade data thus not entirely feasible
 # hence simply divide by a constant to ensure weights in network do not become too large
-NORMALIZATION_CONSTANT = 1000
+NORMALIZATION_CONSTANT = 500
 
 # "normalization" of training data
 X_training = data_processor.X_training.reshape(
@@ -77,10 +77,27 @@ plt.show()
 tf.keras.backend.clear_session()
 
 # getting next prediction
+"""
 last_price = np.array(
     data.iloc[len(data) - 10: len(data), 0]).reshape((1, 10)) / NORMALIZATION_CONSTANT
 predicted_price = model.predict(last_price) * NORMALIZATION_CONSTANT
+"""
 
+# getting overall accuracy
+accuracy = 0
+for i in range(len(Y_prediction)):
+    difference = abs(Y_prediction[i] - Y_actual[i]) / Y_actual[i]
+    accuracy = accuracy + difference
+accuracy = accuracy / len(Y_prediction) * 100
+print("accuracy is", accuracy)
+
+# accuracy excluding spike
+partial_accuracy = 0
+for i in range(500, len(Y_prediction)):
+    difference = abs(Y_prediction[i] - Y_actual[i]) / Y_actual[i]
+    partial_accuracy = partial_accuracy + difference
+partial_accuracy = partial_accuracy / (len(Y_prediction)-500) * 100
+print("partial accuracy is", partial_accuracy)
 
 # If instead of a full backtest, you just want to see how accurate the model is for a particular prediction, run this:
 # data = pdr.get_data_yahoo("AAPL", "2017-12-19", "2018-01-03")
